@@ -1,7 +1,7 @@
 (defproject appengy "0.1.4"
   :description "Appengy app server"
   :url "http://github.com/galdolber/appengy"
-  :main appengy.httpkit
+  :main appengy.httpkit.Httpkit
   :aot :all
   :license {:name "Eclipse Public License"
             :url "http://www.eclipse.org/legal/epl-v10.html"}
