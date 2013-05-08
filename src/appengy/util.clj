@@ -89,9 +89,9 @@
      (header res "Expires" (.format cache-format (+ (.getTime ^Date (Date.)) 31536000000N)))
    (.contains ^String path ".nocache.")
      (-> res
-       (header "Pragma" "No-cache")
-       (header "Cache-control" "no-cache")
-       (header "Expires" (.format cache-format 0)))
+       (header "Pragma" "no-cache")
+       (header "Cache-control" "no-cache, no-store, must-revalidate")
+       (header "Expires" "0"))
    :else res))
 
 (defn wrap-cache-headers [app]
