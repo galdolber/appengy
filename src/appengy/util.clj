@@ -90,8 +90,8 @@
    (.contains ^String path ".nocache.")
      (-> res
        (header "Pragma" "no-cache")
-       (header "Cache-control" "no-cache, no-store, must-revalidate")
-       (header "Expires" "0"))
+       (header "Cache-control" "no-store")
+       (header "Expires" "-1"))
    :else res))
 
 (defn wrap-cache-headers [app]
