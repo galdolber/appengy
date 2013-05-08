@@ -7,7 +7,7 @@
   (^void clean [^String session]))
 
 (definterface SessionSerializer
-  (^void serialize [^Object data])
+  (^Object serialize [^Object data])
   (^Object deserialize [^Object data]))
 
 (deftype NoSessionSerializer [] SessionSerializer
