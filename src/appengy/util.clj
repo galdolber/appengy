@@ -10,7 +10,7 @@
   (:require [clojure.java.io :as io]
             [clojure.tools.reader.edn :as edn]))
 
-(def pid-path "../pid")
+(def pid-path "pid")
 
 (defmacro defn-memo
   "Just like defn, but memoizes the function using clojure.core/memoize"
@@ -74,7 +74,7 @@
 (defn kill-old []
   (if-let [p (safe-slurp pid-path)]
     (try
-      (sh "kill -9" p)
+      (sh "kill" "-9" p)
       (catch Exception e nil)))
   (spit pid-path (pid)))
 
