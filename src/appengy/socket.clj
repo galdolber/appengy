@@ -10,8 +10,6 @@
   (getInputStream [this])
   (isClosed [this]))
 
-(extend Socket IsSocket)
-
 (defprotocol Handler
   (onOpen [this conn session])
   (onClose [this conn session])
