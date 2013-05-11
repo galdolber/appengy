@@ -5,11 +5,6 @@
         [clojure.tools.reader.reader-types :only [input-stream-push-back-reader]])
   (:require [clojure.tools.reader.edn :as edn]))
 
-(defprotocol IsSocket
-  (getOutputStream [this])
-  (getInputStream [this])
-  (isClosed [this]))
-
 (defprotocol Handler
   (onOpen [this conn session])
   (onClose [this conn session])

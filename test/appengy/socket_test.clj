@@ -7,6 +7,11 @@
         [clojure.java.io :only [input-stream delete-file output-stream]]
         [clojure.tools.reader.reader-types :only [input-stream-push-back-reader]]))
 
+(defprotocol IsSocket
+  (getOutputStream [this])
+  (getInputStream [this])
+  (isClosed [this]))
+
 (deftest edn-stream []
   (let [d0 12
         d1 [1 2 3]
