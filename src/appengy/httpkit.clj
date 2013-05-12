@@ -1,19 +1,9 @@
 (ns appengy.httpkit
-  (:gen-class
-   :name appengy.httpkit.Httpkit)
   (:require [org.httpkit.server :as http])
   (:use appengy.server
         appengy.util
         appengy.socket
-        ring.middleware.cookies
-        ring.middleware.session
-        ring.middleware.reload
-        ring.middleware.session.cookie
-        ring.middleware.file-info
-        ring.middleware.multipart-params
-        ring.middleware.params
-        [ring.util.response :only [file-response redirect]]
-        [clojure.tools.cli :only [cli]]))
+        [ring.util.response :only [file-response redirect]]))
 
 (defn get-session [req]
   (get-in req [:cookies "ring-session" :value]))
@@ -101,7 +91,7 @@
     (get-request-dynamic req)
     (not-found)))
 
-(defn handler [req]
+(defn clients-handler [req]
   (if (:websocket? req)
     (handle-ws req)
     ; Force session
@@ -118,26 +108,3 @@
           (open-app (app-conn sess conn) (:statics data)))
         (app-message data)))
     (onError [this conn sess ex] (.printStackTrace ex))))
-
-(defn start [port]
-  (def ws
-    (http/run-server
-     (-> handler
-         wrap-cookies
-         wrap-session
-         wrap-file-info
-         wrap-params
-         wrap-multipart-params
-         wrap-reload
-         wrap-cache-headers)
-     {:port port}))
-  (def apps-server (make-server 9090 apps-handler)))
-
-(defn -main [& args]
-  (let [[{:keys [port local]} _ usage]
-        (cli args
-             ["-p" "--port" "Listen on this port" :parse-fn #(Integer. %) :default 8080]
-             ["-l" "--local" "true for dev" :default true])]
-    (kill-old)
-    (start port)
-    (println (str "Started server on localhost:" port))))

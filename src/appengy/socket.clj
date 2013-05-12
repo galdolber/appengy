@@ -29,14 +29,14 @@
 (defn listen [server handler]
   (while (not (.isClosed server))
     (if-let [socket (.accept server)]
-      (pcall (init-socket socket handler)))))
+      (future (init-socket socket handler)))))
 
 (defn make-server [port handler]
   (let [server (ServerSocket. port)]
-    (pcall (listen server handler))
+    (future (listen server handler))
     #(.close server)))
 
 (defn make-client [host port handler]
   (let [socket (Socket. ^InetAddress (InetAddress/getByName host) ^Integer port)]
-    (pcall (init-socket socket handler))
+    (future (init-socket socket handler))
     #(.close socket)))

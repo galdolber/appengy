@@ -1,11 +1,19 @@
 (ns appengy.socket_test
+  (:import [java.io ByteArrayInputStream ByteArrayOutputStream])
   (:require [clojure.tools.reader.edn :as edn])
   (:use clojure.test
+        [clojure.string :only [join]]
         clojure.tools.logging
         appengy.socket
         appengy.util
         [clojure.java.io :only [input-stream delete-file output-stream]]
         [clojure.tools.reader.reader-types :only [input-stream-push-back-reader]]))
+
+(defn data-input-stream [& s]
+  (ByteArrayInputStream. (.getBytes (join " " (map pr-str s)))))
+
+(defn data-output-stream []
+  (ByteArrayOutputStream.))
 
 (defprotocol IsSocket
   (getOutputStream [this])
@@ -58,9 +66,10 @@
         client-handler (make-handler ch c-out)
         s (make-server 9090 server-handler)
         c (make-client "127.0.0.1" 9090 client-handler)]
-    (Thread/sleep 300)
+    (Thread/sleep 50)
     (@sh [1 2 3])
     (@ch [3 2 1])
+    (Thread/sleep 50)
     (is (= [[1 2 3]] @c-out))
     (is (= [[3 2 1]] @s-out))
     (c)
