@@ -22,7 +22,7 @@
   [^void onStartup [^java.util.List sessions]]
   [^void onMessage [^String session ^String data]])
 
-(definterop -init [] [[] (atom {})])
+(definterop init [] [[] (atom {})])
 
 (defn conn [this]
   (:conn @(.state this)))
@@ -101,14 +101,14 @@
   (let [self this
         handler
         (reify Handler
-          (onOpen [this conn sess]
+          (on-open [this info sendfn sess]
                   (try
-                    (swap! (.state self) assoc :conn conn)
-                    (conn {:cmd :open :statics statics :host host})
+                    (swap! (.state self) assoc :conn sendfn)
+                    (sendfn {:cmd :open :statics statics :host host})
                     (catch Exception e (.printStackTrace e))))
-          (onClose [this conn sess] (handle-close self conn sess))
-          (onMessage [this conn sess data] (command self data))
-          (onError [this conn sess ex] (error self ex)))]
+          (on-close [this info sendfn sess] (handle-close self sendfn sess))
+          (on-message [this info sendfn sess data] (command self data))
+          (on-error [this info sendfn sess ex] (error self ex)))]
     (swap! (.state this) assoc :reconnect true)
     (swap! (.state this) assoc :handler handler)
     (swap! (.state this) assoc :delegate delegate)

@@ -18,7 +18,8 @@
 (defprotocol IsSocket
   (getOutputStream [this])
   (getInputStream [this])
-  (isClosed [this]))
+  (isClosed [this])
+  (getRemoteSocketAddress [this]))
 
 (deftest edn-stream []
   (let [d0 12
@@ -40,22 +41,24 @@
      (reify IsSocket
        (getInputStream [this] in)
        (getOutputStream [this] out)
-       (isClosed [this] @closed))
+       (isClosed [this] @closed)
+       (getRemoteSocketAddress [this] (java.net.InetSocketAddress. "127.0.0.1" 9090)))
      (reify Handler
-       (onOpen [this conn sess] )
-       (onClose [this conn sess] )
-       (onMessage [this conn sess data] (conn data))
-       (onError [this conn sess ex] )))
+       (on-open [this info sendfn sess] (when-not (= (:host info) "localhost")
+                                          :close))
+       (on-close [this info sendfn sess] )
+       (on-message [this info sendfn sess data] (sendfn data))
+       (on-error [this info sendfn sess ex] )))
     (Thread/sleep 300)
     (is (= (str (pr-str m1) "\n" (pr-str m2) "\n")
            (str out)))))
 
 (defn make-handler [c out]
   (reify Handler
-    (onOpen [this conn sess] (reset! c conn))
-    (onClose [this conn sess] )
-    (onMessage [this conn sess data] (swap! out conj data))
-    (onError [this conn sess ex] (.printStackTrace ex))))
+    (on-open [this info sendfn sess] (reset! c sendfn))
+    (on-close [this info sendfn sess] )
+    (on-message [this info sendfn sess data] (swap! out conj data))
+    (on-error [this info sendfn sess ex] (.printStackTrace ex))))
 
 (deftest test-server-client []
   (let [sh (atom nil)

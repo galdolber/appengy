@@ -95,16 +95,5 @@
   (if (:websocket? req)
     (handle-ws req)
     ; Force session
-    (assoc (handle-req req) :session :appengy)))
-
-(def apps-handler
-  (reify Handler
-    (onOpen [this conn sess] )
-    (onClose [this conn sess] (close-app (:host @sess)))
-    (onMessage [this conn sess data]
-      (if (= :open (:cmd data))
-        (do
-          (swap! sess assoc :host (:host data))
-          (open-app (app-conn sess conn) (:statics data)))
-        (app-message data)))
-    (onError [this conn sess ex] (.printStackTrace ex))))
+    (-> (handle-req req)
+        (assoc :session :appengy))))
