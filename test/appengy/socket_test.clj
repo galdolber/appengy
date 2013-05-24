@@ -1,19 +1,27 @@
 (ns appengy.socket_test
-  (:import [java.io ByteArrayInputStream ByteArrayOutputStream])
+  (:import [java.io ByteArrayInputStream ByteArrayOutputStream OutputStreamWriter
+            PushbackReader InputStreamReader PrintWriter])
   (:require [clojure.tools.reader.edn :as edn])
   (:use clojure.test
+        [clojure.tools.reader.reader-types :only [input-stream-push-back-reader input-stream-reader string-reader]]
         [clojure.string :only [join]]
         clojure.tools.logging
         appengy.socket
         appengy.util
-        [clojure.java.io :only [input-stream delete-file output-stream]]
-        [clojure.tools.reader.reader-types :only [input-stream-push-back-reader]]))
+        [clojure.java.io :only [output-stream input-stream delete-file output-stream]]))
 
 (defn data-input-stream [& s]
-  (ByteArrayInputStream. (.getBytes (join " " (map pr-str s)))))
+  (input-stream (.getBytes (join " " (map pr-str s)) "UTF-8")))
 
 (defn data-output-stream []
   (ByteArrayOutputStream.))
+
+(deftest test-utf8 []
+  (let [v "Helloñ"
+        os (data-output-stream)
+        out (PrintWriter. (OutputStreamWriter. os "UTF-8") true)]
+    (write out v)
+    (is (= v (edn/read (PushbackReader. (InputStreamReader. (input-stream (.toByteArray os)))))))))
 
 (defprotocol IsSocket
   (getOutputStream [this])
@@ -33,7 +41,7 @@
 
 (deftest test-init-socket []
   (let [m1 [1 2 3]
-        m2 {:cmd "Hello"}
+        m2 {:cmd "Helloñ"}
         in (data-input-stream m1 m2)
         out (data-output-stream)
         closed (atom false)]

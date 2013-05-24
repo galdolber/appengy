@@ -1,7 +1,9 @@
 (ns appengy.socket
   (:import [java.net ServerSocket Socket InetAddress]
-           [java.io OutputStream PrintWriter])
-  (:use [clojure.tools.reader.reader-types :only [input-stream-push-back-reader]])
+           [java.io OutputStream PrintWriter OutputStreamWriter
+            BufferedReader InputStreamReader PushbackReader])
+  (:use [clojure.tools.reader.reader-types :only [input-stream-push-back-reader]]
+        [clojure.java.io :only [input-stream]])
   (:require [clojure.tools.reader.edn :as edn]))
 
 (defprotocol Handler
@@ -10,15 +12,19 @@
   (on-message [this info sendfn session data])
   (on-error [this info sendfn session ex]))
 
+(defn write [out msg]
+  (.println out (pr-str msg))
+  (.flush out))
+
 (defn init-socket [socket ^appengy.socket.Handler handler]
-  (let [out (PrintWriter. ^OutputStream (.getOutputStream socket) true)
-        in (input-stream-push-back-reader (.getInputStream socket))
+  (let [out (PrintWriter. (OutputStreamWriter. (.getOutputStream socket) "UTF-8"))
+        in (PushbackReader. (InputStreamReader. (input-stream (.getInputStream socket)) "UTF-8"))
         send-agent (agent nil)
         remote (.getRemoteSocketAddress socket)
         info {:ip (-> remote .getAddress .getHostAddress)
               :host (.getHostName remote)
               :port (.getPort remote)}
-        sendfn #(send-off send-agent (fn [_] (.println out (pr-str %))))
+        sendfn #(send-off send-agent (fn [_] (write out %)))
         session (atom {})]
     (when-not (= :close (on-open handler info sendfn session))
       (try

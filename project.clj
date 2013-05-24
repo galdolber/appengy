@@ -1,4 +1,4 @@
-(defproject appengy "0.1.8"
+(defproject appengy "0.1.9"
   :description "Appengy app server"
   :url "http://github.com/galdolber/appengy"
   :main appengy.httpkit.Httpkit
