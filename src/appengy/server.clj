@@ -70,12 +70,15 @@
                         :session (:session conn)
                         :data data})))
 
-(defn open-app [conn statics]
-  (let [host (:host conn)]
-    (when (@apps host)
-      (send! (:conn (@apps host)) {:cmd :shutdown}))
-    (send! conn {:cmd :startup})
-    (swap! apps assoc host {:conn conn, :statics statics})))
+(defn open-app
+  ([conn statics] (open-app conn statics (atom {})))
+  ([conn statics sess]
+   (let [host (:host conn)]
+     (when-let [old (@apps host)]
+       (swap! (:sess old) assoc :shutdown true)
+       (send! (:conn old) {:cmd :shutdown}))
+     (send! conn {:cmd :startup})
+     (swap! apps assoc host {:conn conn :statics statics :sess sess}))))
 
 (defn close-app [host]
   (doseq [c (host-clients host)]
