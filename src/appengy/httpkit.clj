@@ -58,7 +58,10 @@
 (defn process-files [r]
   (if-let [params (:params r)]
     (assoc r :params
-      (into {} (map param-mapper params)))
+      (into {"body"
+             (when-let [b (:body r)]
+               (slurp b))}
+            (map param-mapper params)))
     r))
 
 (defn get-request-dynamic [req]
